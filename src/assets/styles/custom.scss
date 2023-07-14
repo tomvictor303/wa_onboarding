@@ -1,0 +1,24 @@
+.custom_label_1 {
+	color: black;	
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+
+.wa-getstarted-image1 {
+  max-width: 100px;
+}
+
+@media screen and (max-width: 479px) {
+  .wa-getstarted-image1 {
+    max-width: 40px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .wa-getstarted-image1 {
+    max-width: 60px;
+  }
+}
+
+@media screen and (max-width: 991px) {
+}

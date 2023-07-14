@@ -27,6 +27,7 @@ const AppContent = ({
     useEffect(() => {
         // BEGIN wf_onboarding_lock
         if ( 
+          location.pathname !== '/login' &&
           !localStorage?.getItem("onboardingUser") 
         ) {
           navigate(`/login?redirectUri=${encodeURIComponent(window.location.href)}`);

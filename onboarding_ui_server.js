@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
-const port_number = 8010;
+const port_number = 8012;
 const build_dir_path = '/build'; // '../build';
 
 app.use('/onboard', express.static(path.join(__dirname, build_dir_path)));

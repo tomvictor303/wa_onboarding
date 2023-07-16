@@ -76,7 +76,7 @@ const OnboardingPaymentPage = () => {
       </Box>
       <Container maxWidth="lg"
         sx={{paddingTop: "20px", paddingBottom: "10px", maxWidth: '1100px!important'}}>          
-          <form action={`${STRIPE_PATH}/public_area/create-checkout-session`} method="POST"> 
+          <form action={`${STRIPE_PATH}/checkout_in_start_v2/public_area/create-session-v2`} method="POST"> 
             <Typography variant='h4' color={'text.secondary'} align='center' mb={{xs:4, md:4}} >Welcome! Please checkout to get started.</Typography>
 
             {products.map((product: any, index: number) =>

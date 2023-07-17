@@ -21,7 +21,11 @@ type WaProduct = {
   key: string;
   title: string;
   price: number;
+  cleanup_months?: number;
+  // calcuated properties from above
   monthly: boolean;
+  // display_price: number;
+  // comment: string;
 };
 
 const OnboardingPaymentPage = () => {
@@ -34,29 +38,41 @@ const OnboardingPaymentPage = () => {
   const [products, setProducts] = useState<Array<WaProduct>>([]);
   const jwtOnboardingToken: string|null = localStorage?.getItem("jwt_onboarding_token");
 
-  const getProductPrice = (key: string): number => {
+  const getProduct = (key: string): WaProduct|null => {
     for ( let i = 0; i < products.length; i++ ) {
       if ( products[i].key === key) {
-        return products[i].price;
+        return products[i];
       }
     }
-    return 0;
+    return null;
   }
 
   useEffect(()=> {
-    let params: any = new Proxy(new URLSearchParams(window.location.search), {
-      get: (searchParams, prop) => searchParams.get(prop as string),
-    });
+    let urlParams: any = new URLSearchParams(window.location.search);
+
+    var params = {
+      setup_price: urlParams.get('Setup'),
+      cleanup_price: urlParams.get('CleanUp'),
+      wa_price: urlParams.get('Monthly'),
+      cleanup_months: urlParams.get('CleanUpMonths'),
+      isDev: urlParams.get('isDev'),
+    };
 
     let newProducts:Array<WaProduct> = [];
-    if ( params.Setup ) {
-      newProducts.push({ key: 'setup_price', title: 'Setup Fee', price: Number(params.Setup), monthly: false});
+    if ( params.setup_price ) {
+      newProducts.push({ key: 'setup', title: 'Setup Fee', price: Number(params.setup_price), monthly: false});
     }
-    if ( params.CleanUp ) {
-      newProducts.push({ key: 'cleanup_price', title: 'Transaction Backlog Clean Up', price: Number(params.CleanUp), monthly: false});
+    if ( params.cleanup_price ) {
+      newProducts.push({ 
+        key: 'cleanup', 
+        title: 'Transaction Backlog Clean Up', 
+        price: Number(params.cleanup_price), 
+        monthly: params.cleanup_months > 1, 
+        cleanup_months: params.cleanup_months
+      });
     }
-    if ( params.Monthly ) {
-      newProducts.push({ key: 'wa_price', title: 'Weekly Accounting', price: Number(params.Monthly), monthly: true});
+    if ( params.wa_price ) {
+      newProducts.push({ key: 'weekly_accounting', title: 'Weekly Accounting', price: Number(params.wa_price), monthly: true});
     }
     setProducts(newProducts);
   }, [])
@@ -91,7 +107,7 @@ const OnboardingPaymentPage = () => {
                   </Box>
                   <Stack width={'100%'} direction={{xs:'column', md:'row'}} alignItems={{md:'center'}} justifyContent={'space-between'} gap={1}>
                     <Typography variant='h4' fontWeight={100} color={'grey.600'} textAlign={'left'} pl={{xs:2, md:5}}>
-                      <Box fontSize={{xs:16, sm: 'inherit'}}>{product.title}</Box>
+                      <Box fontSize={{xs: 16, sm: 'unset'}}>{product.title}</Box>
                     </Typography>
                     <Typography variant='h5' color={'text.secondary'} textAlign={'right'}>{product.price} USD</Typography>
                   </Stack>
@@ -121,9 +137,10 @@ const OnboardingPaymentPage = () => {
             </Box>
 
             <Box display={'hidden'}>
-              <input type='hidden' name="wa_price" value={getProductPrice('wa_price')} /> 
-              <input type='hidden' name="setup_price" value={getProductPrice('setup_price')} /> 
-              <input type='hidden' name="cleanup_price" value={getProductPrice('cleanup_price')} />
+              <input type='hidden' name="wa_price" value={getProduct('weekly_accounting')?.price} /> 
+              <input type='hidden' name="setup_price" value={getProduct('setup')?.price} /> 
+              <input type='hidden' name="cleanup_price" value={getProduct('cleanup')?.price} />
+              <input type='hidden' name="cleanup_months" value={getProduct('cleanup')?.cleanup_months} />
               <input type='hidden' name="source_page_url" value={window?.location?.href} />
               <input type='hidden' name="jwt_onboarding_token" value={(jwtOnboardingToken ? jwtOnboardingToken : "")} />
             </Box>

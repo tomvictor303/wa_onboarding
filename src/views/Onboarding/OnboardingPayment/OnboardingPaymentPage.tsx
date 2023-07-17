@@ -24,8 +24,8 @@ type WaProduct = {
   cleanup_months?: number;
   // calcuated properties from above
   monthly: boolean;
-  // display_price: number;
-  // comment: string;
+  display_price: number;
+  comment: string;
 };
 
 const OnboardingPaymentPage = () => {
@@ -60,30 +60,48 @@ const OnboardingPaymentPage = () => {
 
     let newProducts:Array<WaProduct> = [];
     if ( params.setup_price ) {
-      newProducts.push({ key: 'setup', title: 'Setup Fee', price: Number(params.setup_price), monthly: false});
+      let item = { key: 'setup', title: 'Setup Fee', price: Number(params.setup_price), monthly: false};
+      newProducts.push({ ...item, display_price: item.price, comment: ''});
     }
     if ( params.cleanup_price ) {
-      newProducts.push({ 
+      let item = { 
         key: 'cleanup', 
         title: 'Transaction Backlog Clean Up', 
         price: Number(params.cleanup_price), 
         monthly: params.cleanup_months > 1, 
         cleanup_months: params.cleanup_months
-      });
+      };
+      newProducts.push({ ...item, display_price: item.price, comment: ''});
     }
     if ( params.wa_price ) {
-      newProducts.push({ key: 'weekly_accounting', title: 'Weekly Accounting', price: Number(params.wa_price), monthly: true});
+      let item = { key: 'weekly_accounting', title: 'Weekly Accounting', price: Number(params.wa_price), monthly: true};
+      newProducts.push({ ...item, display_price: item.price, comment: ''});
     }
+    // BEGIN refine_calculation 
+    for (let i = 0; i < newProducts.length; i++) {
+      let { key, cleanup_months, price} = newProducts[i];
+      if (key === 'cleanup' && cleanup_months !== undefined && cleanup_months > 1) {
+        newProducts[i].display_price = price / cleanup_months;
+        newProducts[i].comment = Number(price).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) + ' USD over ' + cleanup_months + ' months';
+      }
+    } // END refine_calculation
     setProducts(newProducts);
   }, [])
 
-  let total = 0, monthly_total = 0;
+  let total_now_price = 0, total_monthly_price = 0;
   for(let i = 0; i < products.length; i++) {
-    total += products[i].price;
     if ( products[i].monthly ) {
-      monthly_total += products[i].price;
-    } 
+      total_monthly_price += products[i].display_price;
+    } else {
+      total_now_price += products[i].display_price;
+    }
   }
+
+  const now = new Date();
+  const first_day_of_next_month = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
   return (
     <Box sx={{minHeight: "100vh", background: 'white'}}> 
@@ -109,7 +127,14 @@ const OnboardingPaymentPage = () => {
                     <Typography variant='h4' fontWeight={100} color={'grey.600'} textAlign={'left'} pl={{xs:2, md:5}}>
                       <Box fontSize={{xs: 16, sm: 'unset'}}>{product.title}</Box>
                     </Typography>
-                    <Typography variant='h5' color={'text.secondary'} textAlign={'right'}>{product.price} USD</Typography>
+                    <Box>
+                      <Stack width={'100%'} direction={'column'} alignItems={'end'} justifyContent={'space-between'} gap={1}>
+                        <Typography variant='h5' color={'text.secondary'} textAlign={'right'}>{Number(product.display_price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2})} USD {product.monthly?'/ month':''}</Typography>
+                        { product.comment && (
+                          <Typography variant='body1' color={'text.secondary'} textAlign={'right'}>{product.comment}</Typography>
+                        )}
+                      </Stack>
+                    </Box>
                   </Stack>
                 </Stack>
               </Box>
@@ -128,11 +153,22 @@ const OnboardingPaymentPage = () => {
 
             <Box mt={2}>
               <Box textAlign={'right'}>
-                <Typography variant='h4' fontWeight={100} color={'grey.600'} align='center' display={'inline-block'}>Total &nbsp;</Typography>
-                <Typography variant='h5' color={'text.secondary'} align='center' display={'inline-block'}>{total} USD</Typography>
+                <Typography variant='h4' fontWeight={100} color={'grey.600'} align='center' display={'inline-block'}>Total Price Today&nbsp;</Typography>
+                <Typography variant='h5' color={'text.secondary'} align='center' display={'inline-block'}>{Number(total_now_price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2})} USD</Typography>
               </Box>
               <Box textAlign={'right'} mt={1}>
-                <Typography variant='h6' fontWeight={100} color={'grey.600'} align='center' display={'inline-block'}>Then {monthly_total} USD per month</Typography>
+                { total_monthly_price > 0 && (
+                    <Typography variant='h6' fontWeight={100} color={'grey.600'} align='center' display={'inline-block'}>
+                      {Number(total_monthly_price).toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      }) + " USD / month from " + first_day_of_next_month.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </Typography>
+                )}
               </Box>            
             </Box>
 

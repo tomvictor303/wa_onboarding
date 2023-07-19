@@ -22,19 +22,16 @@ const AppContent = ({
     const navigate = useNavigate();
     const location = useLocation();
 
-    const default_url: string = '/login';
-
     useEffect(() => {
         // BEGIN wf_onboarding_lock
         if ( 
+          location.pathname !== '' &&
+          location.pathname !== '/' &&
           location.pathname !== '/login' &&
           !localStorage?.getItem("onboardingUser") 
         ) {
           navigate(`/login?redirectUri=${encodeURIComponent(window.location.href)}`);
         } // END wf_onboarding_lock
-
-        location.pathname === '/' && navigate(default_url);
-        location.pathname === '' && navigate(default_url);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

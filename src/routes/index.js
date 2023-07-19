@@ -15,6 +15,12 @@ const routData = [
     },
     {
         id: 'route-wf-002',
+        path: '/',
+        component: reviews.OnboardingWelcomePage,
+        requiresAuth: false,
+    },
+    {
+        id: 'route-wf-002',
         path: '/login',
         component: reviews.OnboardingLoginPage,
         requiresAuth: false,
